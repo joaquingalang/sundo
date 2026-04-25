@@ -1,0 +1,17 @@
+[
+  {
+    "origin": [
+      "http://localhost:3000",
+      "https://sundo-five.vercel.app"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Length",
+      "User-Agent",
+      "x-goog-resumable"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

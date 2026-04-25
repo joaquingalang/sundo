@@ -5,7 +5,9 @@
       "Bash(npx create-next-app@latest sundo --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
       "Bash(npm run *)",
       "Bash(npx tsc *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(gsutil cors *)",
+      "Bash(gcloud storage buckets update *)"
     ]
   }
 }
