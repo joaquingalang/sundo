@@ -40,7 +40,7 @@ export default function PendingPage() {
         if (!snap.exists()) return;
         const data = snap.data() as OnboardingDoc;
         if (data.role) setRole(data.role);
-        if (data.verificationStatus === "verified") {
+        if (data.status === "verified") {
           router.push("/dashboard");
         }
       });
