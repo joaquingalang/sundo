@@ -6,33 +6,17 @@ import { auth } from "@/lib/firebase";
 import { loadOnboardingDoc, saveStepDraft } from "@/lib/firestore/onboarding";
 import { OnboardingLayout } from "@/components/onboarding/OnboardingLayout";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Button } from "@/components/ui/Button";
 
-const CONSULTANT_STEPS = ["Personal Info", "Expertise", "Rates", "Documents"];
+const CONSULTANT_STEPS = ["Profile Info", "Expertise", "Pricing", "AI Verification"];
 
-const LANGUAGE_OPTIONS = [
-  { value: "english", label: "English" },
-  { value: "filipino", label: "Filipino (Tagalog)" },
-  { value: "ilocano", label: "Ilocano" },
-  { value: "cebuano", label: "Cebuano" },
-  { value: "hiligaynon", label: "Hiligaynon / Ilonggo" },
-  { value: "kapampangan", label: "Kapampangan" },
-  { value: "bicolano", label: "Bicolano" },
-  { value: "waray", label: "Waray" },
-  { value: "arabic", label: "Arabic" },
-  { value: "mandarin", label: "Mandarin" },
-  { value: "japanese", label: "Japanese" },
-  { value: "korean", label: "Korean" },
-  { value: "spanish", label: "Spanish" },
-  { value: "french", label: "French" },
-  { value: "german", label: "German" },
-  { value: "italian", label: "Italian" },
-];
-
-const BIO_MAX = 500;
+const PROVINCE_OPTIONS = [
+  "Metro Manila", "Cebu", "Davao", "Iloilo", "Pampanga", "Cavite", "Laguna", "Pangasinan", "Bulacan", "Batangas"
+].map(p => ({ value: p, label: p }));
 
 export default function ConsultantStep1Page() {
   const router = useRouter();
@@ -40,29 +24,22 @@ export default function ConsultantStep1Page() {
   const [authReady, setAuthReady] = useState(false);
   const [fullName, setFullName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [address, setAddress] = useState("");
-  const [bio, setBio] = useState("");
-  const [yearsExperience, setYearsExperience] = useState("");
-  const [languages, setLanguages] = useState<string[]>([]);
+  const [professionalTitle, setProfessionalTitle] = useState("");
+  const [areaOfOperation, setAreaOfOperation] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) { router.replace("/login"); return; }
-      if (!user.emailVerified) { router.replace("/verify-email"); return; }
       setUid(user.uid);
       const doc = await loadOnboardingDoc(user.uid);
       const draft = doc?.consultant?.step1;
       if (draft) {
         if (draft.fullName) setFullName(draft.fullName);
         if (draft.photoUrl) setPhotoUrl(draft.photoUrl);
-        if (draft.jobTitle) setJobTitle(draft.jobTitle);
-        if (draft.address) setAddress(draft.address);
-        if (draft.bio) setBio(draft.bio);
-        if (draft.yearsExperience !== undefined) setYearsExperience(String(draft.yearsExperience));
-        if (draft.languages) setLanguages(draft.languages);
+        if (draft.professionalTitle) setProfessionalTitle(draft.professionalTitle);
+        if (draft.areaOfOperation) setAreaOfOperation(draft.areaOfOperation);
       }
       setAuthReady(true);
     });
@@ -70,21 +47,13 @@ export default function ConsultantStep1Page() {
   }, [router]);
 
   if (!authReady) return null;
-  console.log("[Consultant Step1] Rendering. uid:", uid, "storagePath:", `photos/${uid}/profile`);
 
   function validate() {
     const errs: Record<string, string> = {};
     if (!fullName.trim()) errs.fullName = "Full name is required.";
     if (!photoUrl) errs.photo = "Profile photo is required.";
-    if (!jobTitle.trim()) errs.jobTitle = "Job title is required.";
-    if (!address.trim()) errs.address = "Address is required.";
-    if (!bio.trim()) errs.bio = "Professional bio is required.";
-    else if (bio.length < 10) errs.bio = "Bio must be at least 10 characters.";
-    else if (bio.length > BIO_MAX) errs.bio = `Bio must be ${BIO_MAX} characters or fewer.`;
-    const yrs = parseInt(yearsExperience);
-    if (!yearsExperience) errs.yearsExperience = "Years of experience is required.";
-    else if (isNaN(yrs) || yrs < 0) errs.yearsExperience = "Enter a valid number.";
-    if (languages.length === 0) errs.languages = "Please select at least one language.";
+    if (!professionalTitle.trim()) errs.professionalTitle = "Professional title is required.";
+    if (!areaOfOperation) errs.areaOfOperation = "Please select your primary area of operation.";
     return errs;
   }
 
@@ -97,11 +66,8 @@ export default function ConsultantStep1Page() {
       await saveStepDraft(uid, "consultant", 1, {
         fullName: fullName.trim(),
         photoUrl,
-        jobTitle: jobTitle.trim(),
-        address: address.trim(),
-        bio: bio.trim(),
-        yearsExperience: parseInt(yearsExperience),
-        languages,
+        professionalTitle: professionalTitle.trim(),
+        areaOfOperation
       });
       router.push("/onboarding/consultant/step-2");
     } catch {
@@ -114,11 +80,22 @@ export default function ConsultantStep1Page() {
       currentStep={1}
       totalSteps={4}
       steps={CONSULTANT_STEPS}
-      title="Your professional profile"
-      subtitle="OFWs will see this information when browsing consultants. Make it count."
+      title="Professional Profile"
+      subtitle="Define your reach and expertise to help OFWs reintegrate successfully."
     >
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="flex justify-center mb-4">
+          <FileUpload
+            label="Profile Photo"
+            storagePath={`photos/${uid}/profile`}
+            onUploadComplete={(url) => { setPhotoUrl(url); setErrors((p) => ({ ...p, photo: "" })); }}
+            error={errors.photo}
+            accept="image/*"
+            previewUrl={photoUrl}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left">
           <Input
             label="Full Name"
             placeholder="e.g. Juan dela Cruz"
@@ -129,60 +106,22 @@ export default function ConsultantStep1Page() {
           />
           <Input
             label="Professional Title"
-            placeholder="e.g. Certified Financial Planner"
-            value={jobTitle}
-            onChange={(e) => { setJobTitle(e.target.value); setErrors((p) => ({ ...p, jobTitle: "" })); }}
-            error={errors.jobTitle}
+            placeholder="e.g. Business Consultant"
+            value={professionalTitle}
+            onChange={(e) => { setProfessionalTitle(e.target.value); setErrors((p) => ({ ...p, professionalTitle: "" })); }}
+            error={errors.professionalTitle}
             required
           />
         </div>
 
-        <FileUpload
-          label="Profile Photo"
-          storagePath={`photos/${uid}/profile`}
-          onUploadComplete={(url) => { setPhotoUrl(url); setErrors((p) => ({ ...p, photo: "" })); }}
-          error={errors.photo}
-          accept="image/*"
-        />
-
-        <Input
-          label="Address"
-          placeholder="e.g. BGC, Taguig City, Metro Manila"
-          value={address}
-          onChange={(e) => { setAddress(e.target.value); setErrors((p) => ({ ...p, address: "" })); }}
-          error={errors.address}
+        <Select
+          label="Area of Operation"
+          placeholder="Select primary province"
+          options={PROVINCE_OPTIONS}
+          value={areaOfOperation}
+          onChange={(e) => { setAreaOfOperation(e.target.value); setErrors((p) => ({ ...p, areaOfOperation: "" })); }}
+          error={errors.areaOfOperation}
           required
-        />
-
-        <Textarea
-          label="Professional Bio"
-          placeholder="Describe your expertise, experience, and how you help OFWs..."
-          value={bio}
-          onChange={(e) => { setBio(e.target.value); setErrors((p) => ({ ...p, bio: "" })); }}
-          error={errors.bio}
-          hint={`${bio.length} / ${BIO_MAX} characters`}
-          rows={5}
-        />
-
-        <Input
-          label="Years of Experience"
-          type="number"
-          placeholder="e.g. 8"
-          min="0"
-          max="60"
-          value={yearsExperience}
-          onChange={(e) => { setYearsExperience(e.target.value); setErrors((p) => ({ ...p, yearsExperience: "" })); }}
-          error={errors.yearsExperience}
-          required
-        />
-
-        <MultiSelect
-          label="Languages Spoken"
-          options={LANGUAGE_OPTIONS}
-          value={languages}
-          onChange={(v) => { setLanguages(v); setErrors((p) => ({ ...p, languages: "" })); }}
-          error={errors.languages}
-          hint="Select all languages you can consult in."
         />
 
         <div className="flex items-center justify-between pt-8 mt-4 border-t border-akaroa/30">

@@ -8,73 +8,43 @@ import { OnboardingLayout } from "@/components/onboarding/OnboardingLayout";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/cn";
 
-const OFW_STEPS = ["Personal Info", "Deployment", "Interests", "Documents"];
-
-const SITUATION_OPTIONS = [
-  { value: "abroad", label: "Currently abroad" },
-  { value: "recently_repatriated", label: "Recently repatriated (< 3 months)" },
-  { value: "home_1_6mo", label: "Back home 1–6 months" },
-  { value: "home_6mo_plus", label: "Back home 6+ months" },
-];
+const OFW_STEPS = ["Profile Info", "Goals", "AI Verification", "Complete"];
 
 const SALARY_OPTIONS = [
-  { value: "below_15k", label: "Below ₱15,000 / mo" },
-  { value: "15k_30k", label: "₱15,000 – ₱30,000 / mo" },
-  { value: "30k_50k", label: "₱30,000 – ₱50,000 / mo" },
-  { value: "50k_80k", label: "₱50,000 – ₱80,000 / mo" },
-  { value: "80k_120k", label: "₱80,000 – ₱120,000 / mo" },
-  { value: "above_120k", label: "Above ₱120,000 / mo" },
-  { value: "prefer_not", label: "Prefer not to say" },
+  { value: "below_30k", label: "Below ₱30,000 / mo" },
+  { value: "30k_60k", label: "₱30,000 – ₱60,000 / mo" },
+  { value: "60k_100k", label: "₱60,000 – ₱100,000 / mo" },
+  { value: "above_100k", label: "Above ₱100,000 / mo" },
 ];
 
-const REMITTANCE_OPTIONS = [
-  { value: "below_10k", label: "Below ₱10,000 / mo" },
-  { value: "10k_20k", label: "₱10,000 – ₱20,000 / mo" },
-  { value: "20k_40k", label: "₱20,000 – ₱40,000 / mo" },
-  { value: "40k_70k", label: "₱40,000 – ₱70,000 / mo" },
-  { value: "above_70k", label: "Above ₱70,000 / mo" },
-  { value: "prefer_not", label: "Prefer not to say" },
+const GOAL_OPTIONS = [
+  { value: "Business", label: "Start a Local Business" },
+  { value: "Redeployment", label: "Find a New Job (Local/Abroad)" },
+  { value: "General", label: "General Legal/Financial Advice" },
+  { value: "Benefits", label: "Claim Government Benefits" },
+  { value: "Retirement", label: "Retirement Planning" },
+  { value: "Education", label: "Education / Upskilling" },
 ];
-
-const COUNTRY_OPTIONS = [
-  "Saudi Arabia", "United Arab Emirates", "Qatar", "Kuwait", "Bahrain", "Oman",
-  "Hong Kong", "Singapore", "Malaysia", "Japan", "South Korea", "Taiwan",
-  "United States", "Canada", "United Kingdom", "Australia", "New Zealand",
-  "Italy", "Germany", "Spain", "France", "Greece", "Netherlands", "Portugal",
-  "Israel", "Jordan", "Lebanon", "Libya", "Cyprus",
-  "Brunei", "Indonesia", "Thailand", "Papua New Guinea",
-  "Austria", "Belgium", "Denmark", "Norway", "Sweden", "Switzerland",
-  "South Africa", "Nigeria", "Kenya",
-  "Other",
-].map((c) => ({ value: c.toLowerCase().replace(/\s+/g, "_"), label: c }));
 
 export default function OfwStep2Page() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
-  const [jobTitle, setJobTitle] = useState("");
-  const [country, setCountry] = useState("");
-  const [employer, setEmployer] = useState("");
-  const [situationStatus, setSituationStatus] = useState("");
   const [salaryRange, setSalaryRange] = useState("");
-  const [remittanceRange, setRemittanceRange] = useState("");
+  const [goal, setGoal] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) { router.replace("/login"); return; }
-      if (!user.emailVerified) { router.replace("/verify-email"); return; }
       setUid(user.uid);
       const doc = await loadOnboardingDoc(user.uid);
       const draft = doc?.ofw?.step2;
       if (draft) {
-        if (draft.jobTitle) setJobTitle(draft.jobTitle);
-        if (draft.country) setCountry(draft.country);
-        if (draft.employer) setEmployer(draft.employer);
-        if (draft.situationStatus) setSituationStatus(draft.situationStatus);
         if (draft.salaryRange) setSalaryRange(draft.salaryRange);
-        if (draft.remittanceRange) setRemittanceRange(draft.remittanceRange);
+        if (draft.goal) setGoal(draft.goal);
       }
     });
     return unsub;
@@ -82,12 +52,8 @@ export default function OfwStep2Page() {
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (!jobTitle.trim()) errs.jobTitle = "Job title is required.";
-    if (!country) errs.country = "Please select your country of deployment.";
-    if (!employer.trim()) errs.employer = "Employer name is required.";
-    if (!situationStatus) errs.situationStatus = "Please select your current situation.";
-    if (!salaryRange) errs.salaryRange = "Please select a salary range.";
-    if (!remittanceRange) errs.remittanceRange = "Please select a remittance range.";
+    if (!salaryRange) errs.salaryRange = "Please select your monthly salary range.";
+    if (!goal) errs.goal = "Please select your primary goal.";
     return errs;
   }
 
@@ -97,14 +63,7 @@ export default function OfwStep2Page() {
     if (!uid) return;
     setSaving(true);
     try {
-      await saveStepDraft(uid, "ofw", 2, {
-        jobTitle: jobTitle.trim(),
-        country,
-        employer: employer.trim(),
-        situationStatus,
-        salaryRange,
-        remittanceRange,
-      });
+      await saveStepDraft(uid, "ofw", 2, { salaryRange, goal });
       router.push("/onboarding/ofw/step-3");
     } catch {
       setSaving(false);
@@ -116,68 +75,46 @@ export default function OfwStep2Page() {
       currentStep={2}
       totalSteps={4}
       steps={OFW_STEPS}
-      title="Your deployment details"
-      subtitle="We use this to match you with consultants relevant to your situation."
+      title="Financials & Goals"
+      subtitle="Define your objective to find the best expert matches."
     >
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Input
-            label="Job Title / Occupation"
-            placeholder="e.g. Registered Nurse"
-            value={jobTitle}
-            onChange={(e) => { setJobTitle(e.target.value); setErrors((p) => ({ ...p, jobTitle: "" })); }}
-            error={errors.jobTitle}
-            required
-          />
-          <Select
-            label="Country of Deployment"
-            placeholder="Select country"
-            options={COUNTRY_OPTIONS}
-            value={country}
-            onChange={(e) => { setCountry(e.target.value); setErrors((p) => ({ ...p, country: "" })); }}
-            error={errors.country}
-            required
-          />
-        </div>
-
-        <Input
-          label="Employer / Agency Name"
-          placeholder="e.g. St. Mary's Hospital"
-          value={employer}
-          onChange={(e) => { setEmployer(e.target.value); setErrors((p) => ({ ...p, employer: "" })); }}
-          error={errors.employer}
-          required
-        />
-
+      <div className="flex flex-col gap-8">
         <Select
-          label="Current Situation"
-          placeholder="Select your situation"
-          options={SITUATION_OPTIONS}
-          value={situationStatus}
-          onChange={(e) => { setSituationStatus(e.target.value); setErrors((p) => ({ ...p, situationStatus: "" })); }}
-          error={errors.situationStatus}
+          label="Monthly Salary"
+          placeholder="What is your current monthly salary?"
+          options={SALARY_OPTIONS}
+          value={salaryRange}
+          onChange={(e) => { setSalaryRange(e.target.value); setErrors((p) => ({ ...p, salaryRange: "" })); }}
+          error={errors.salaryRange}
           required
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Select
-            label="Monthly Salary Range"
-            placeholder="Select range"
-            options={SALARY_OPTIONS}
-            value={salaryRange}
-            onChange={(e) => { setSalaryRange(e.target.value); setErrors((p) => ({ ...p, salaryRange: "" })); }}
-            error={errors.salaryRange}
-            required
-          />
-          <Select
-            label="Monthly Remittance"
-            placeholder="Select range"
-            options={REMITTANCE_OPTIONS}
-            value={remittanceRange}
-            onChange={(e) => { setRemittanceRange(e.target.value); setErrors((p) => ({ ...p, remittanceRange: "" })); }}
-            error={errors.remittanceRange}
-            required
-          />
+        <div className="space-y-4">
+          <p className="text-sm font-bold text-rhino uppercase tracking-widest text-left">What is your primary goal?</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {GOAL_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { setGoal(opt.value); setErrors((p) => ({ ...p, goal: "" })); }}
+                className={cn(
+                  "p-6 rounded-2xl border-2 text-left transition-all group",
+                  goal === opt.value 
+                    ? "border-desert bg-desert/5 ring-1 ring-desert/20" 
+                    : "border-akaroa/20 bg-white hover:border-desert/30"
+                )}
+              >
+                <p className={cn(
+                  "font-heading font-bold mb-1",
+                  goal === opt.value ? "text-desert" : "text-rhino"
+                )}>
+                  {opt.label}
+                </p>
+                <p className="text-xs text-rhino/40 font-body">Expert guidance for your {opt.value.toLowerCase()} journey.</p>
+              </button>
+            ))}
+          </div>
+          {errors.goal && <p className="text-xs text-red-500 mt-2">{errors.goal}</p>}
         </div>
 
         <div className="flex items-center justify-between pt-8 mt-4 border-t border-akaroa/30">

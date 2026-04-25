@@ -17,11 +17,17 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Consultants", href: "/consultants", icon: Users },
-  { label: "Engagements", href: "/engagements", icon: Briefcase },
+const ofwNavItems = [
+  { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Find Experts", href: "/consultants", icon: Users },
+  { label: "Status", href: "/engagements", icon: Briefcase },
   { label: "Wallet", href: "/wallet", icon: Wallet },
+];
+
+const consultantNavItems = [
+  { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Status", href: "/engagements", icon: Briefcase },
+  { label: "Earnings", href: "/wallet", icon: Wallet },
 ];
 
 const secondaryItems = [
@@ -45,6 +51,8 @@ export function Sidebar() {
 
   const initials = user?.displayName?.split(' ').map(n => n[0]).join('') || "U";
 
+  const currentNavItems = user?.role === "consultant" ? consultantNavItems : ofwNavItems;
+
   return (
     <aside className="w-72 bg-rhino text-white flex flex-col h-full overflow-y-auto">
       <div className="p-8">
@@ -57,9 +65,9 @@ export function Sidebar() {
         <div className="px-4 py-2">
           <p className="text-[10px] font-bold text-akaroa/30 uppercase tracking-[0.2em] mb-4 text-left">Main Menu</p>
           <div className="space-y-1">
-            {navItems.map((item) => (
+            {currentNavItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-body text-sm",
