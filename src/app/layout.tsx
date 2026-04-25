@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,8 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sundo",
-  description: "AI-powered platform that bridges the trust gap between OFWs and local merchants",
+  title: "Sundo — OFW Business Consulting Platform",
+  description:
+    "Connect with verified business consultants through a secure milestone-based escrow system. Built for Overseas Filipino Workers.",
+  keywords: ["OFW", "business consulting", "escrow", "Philippines", "overseas workers"],
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1E3A5F",
 };
 
 export default function RootLayout({
