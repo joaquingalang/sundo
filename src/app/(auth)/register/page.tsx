@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
+import { setDoc, doc } from "firebase/firestore";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 
 interface FormErrors {
   email?: string;
@@ -56,6 +57,19 @@ export default function RegisterPage() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create user profile in Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: email,
+        displayName: "", // Will be set in onboarding
+        role: "ofw", // Default role
+        isOnboarded: false,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
       await sendEmailVerification(userCredential.user);
       router.push("/verify-email");
     } catch (err) {

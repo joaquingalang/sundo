@@ -76,15 +76,37 @@ export async function setRole(uid: string, role: UserRole): Promise<void> {
     doc(db, "users", uid),
     {
       role,
-      status: "pending_submission",
+      status: "pending",
+      isOnboarded: false,
       roleSelected: true,
       onboardingStep: 1,
       onboardingComplete: false,
       documentsSubmitted: false,
-      verificationStatus: "pending",
     },
     { merge: true }
   );
+}
+
+function toFlatProfileFields(
+  role: UserRole,
+  step: number,
+  data: Record<string, unknown>
+): Record<string, unknown> {
+  if (role === "ofw") {
+    if (step === 1) return { displayName: data.fullName, photoURL: data.photoUrl, address: data.address };
+    if (step === 2) return { lastPosition: data.jobTitle, countryDeployed: data.country, currentSituation: data.situationStatus };
+    if (step === 3) {
+      const primary = (data.primaryInterests as string[]) ?? [];
+      const secondary = (data.secondaryInterests as string[]) ?? [];
+      return { interests: [...primary, ...secondary] };
+    }
+  }
+  if (role === "consultant") {
+    if (step === 1) return { displayName: data.fullName, photoURL: data.photoUrl, professionalTitle: data.jobTitle, bio: data.bio, yearsExperience: data.yearsExperience };
+    if (step === 2) return { categories: data.expertiseAreas };
+    if (step === 3) return { sessionRate: data.sessionRate, projectRateRange: { min: data.projectRateMin, max: data.projectRateMax } };
+  }
+  return {};
 }
 
 export async function saveStepDraft(
@@ -93,9 +115,11 @@ export async function saveStepDraft(
   step: number,
   data: Record<string, unknown>
 ): Promise<void> {
+  const flatFields = toFlatProfileFields(role, step, data);
   await updateDoc(doc(db, "users", uid), {
     [`${role}.step${step}`]: data,
     onboardingStep: step,
+    ...flatFields,
   });
 }
 
@@ -103,6 +127,7 @@ export async function completeOnboarding(uid: string): Promise<void> {
   await updateDoc(doc(db, "users", uid), {
     documentsSubmitted: true,
     onboardingComplete: true,
-    status: "pending_review",
+    isOnboarded: true,
+    status: "pending",
   });
 }
