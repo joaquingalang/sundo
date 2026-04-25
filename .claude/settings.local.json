@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/L-JOAQUIN/Documents/Projects/Web/**)",
+      "Bash(npx create-next-app@latest sundo --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)"
+    ]
+  }
+}
