@@ -3,19 +3,63 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Shield } from "lucide-react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase/clientApp";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      const { uid } = credential.user;
+
+      await setDoc(doc(db, "users", uid), {
+        uid,
+        email,
+        fullName,
+        role: "ofw",
+        escrowBalance: 0,
+        onboardingCompleted: false,
+        createdAt: serverTimestamp(),
+      });
+
       router.push("/onboarding");
-    }, 600);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === "auth/email-already-in-use") {
+        setError("An account with this email already exists. Please log in.");
+      } else if (code === "auth/invalid-email") {
+        setError("Invalid email address.");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,6 +87,8 @@ export default function RegisterPage() {
             type="text"
             placeholder="Enter your full name"
             icon={<User size={18} />}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             required
           />
           <Input
@@ -50,6 +96,8 @@ export default function RegisterPage() {
             type="email"
             placeholder="Enter your email"
             icon={<Mail size={18} />}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           <Input
@@ -57,6 +105,8 @@ export default function RegisterPage() {
             type="password"
             placeholder="Create a password"
             icon={<Lock size={18} />}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
           <Input
@@ -64,8 +114,14 @@ export default function RegisterPage() {
             type="password"
             placeholder="Confirm your password"
             icon={<Lock size={18} />}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
+
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
 
           <Button type="submit" fullWidth size="lg" loading={loading} className="mt-2">
             Create Account

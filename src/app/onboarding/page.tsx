@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/clientApp";
+import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
 import ProgressBar from "@/components/ui/ProgressBar";
 import OnboardingCard from "@/components/features/OnboardingCard";
@@ -10,14 +13,16 @@ import { onboardingQuestions } from "@/lib/mock-data";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
+  const [saving, setSaving] = useState(false);
 
   const totalSteps = onboardingQuestions.length;
   const question = onboardingQuestions[currentStep];
   const progress = ((currentStep + 1) / totalSteps) * 100;
-
   const currentSelections = selections[question.id] || [];
+  const isLastStep = currentStep === totalSteps - 1;
 
   const toggleSelection = (optionId: string) => {
     setSelections((prev) => {
@@ -29,15 +34,30 @@ export default function OnboardingPage() {
     });
   };
 
-  const handleNext = () => {
-    if (currentStep < totalSteps - 1) {
+  const handleNext = async () => {
+    if (!isLastStep) {
       setCurrentStep((prev) => prev + 1);
-    } else {
-      router.push("/dashboard");
+      return;
+    }
+
+    // Last step — persist to Firestore and navigate
+    setSaving(true);
+    try {
+      if (currentUser) {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          onboardingAnswers: selections,
+          onboardingCompleted: true,
+        });
+      }
+      router.push("/app/dashboard");
+    } catch (err) {
+      console.error("Failed to save onboarding:", err);
+      // Navigate anyway so the user isn't stuck
+      router.push("/app/dashboard");
+    } finally {
+      setSaving(false);
     }
   };
-
-  const isLastStep = currentStep === totalSteps - 1;
 
   return (
     <div className="min-h-dvh flex flex-col bg-surface">
@@ -86,7 +106,8 @@ export default function OnboardingPage() {
             fullWidth
             size="lg"
             onClick={handleNext}
-            disabled={currentSelections.length === 0}
+            disabled={currentSelections.length === 0 || saving}
+            loading={saving}
           >
             {isLastStep ? "Get Started" : "Next"}
             <ArrowRight size={18} />
