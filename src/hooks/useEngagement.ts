@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { doc, onSnapshot, collection, query, orderBy, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Engagement, Milestone, ChatMessage } from "@/types";
+import { Engagement, Milestone, Message } from "@/types";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export function useEngagement(engagementId: string) {
@@ -36,7 +36,7 @@ export function useEngagement(engagementId: string) {
 }
 
 export function useEngagementChat(engagementId: string) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     if (!engagementId) return;
@@ -44,7 +44,7 @@ export function useEngagementChat(engagementId: string) {
     const unsubscribe = onSnapshot(
       query(collection(db, "engagements", engagementId, "messages"), orderBy("createdAt", "asc")),
       (snapshot) => {
-        setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage)));
+        setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message)));
       }
     );
 
