@@ -43,7 +43,7 @@ export default function ProjectBookingPage() {
         consultantId: consultant.uid,
         title: projectTitle,
         description: projectDesc,
-        category: consultant.categories?.[0] || 'general',
+        category: consultant.expertise?.[0] || 'general',
         mode: "project",
         status: "proposal_pending",
         totalAmount: consultant.projectRateRange?.min || 10000,
