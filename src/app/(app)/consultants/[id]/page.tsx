@@ -76,7 +76,7 @@ export default function ConsultantProfilePage() {
   if (isLoading) return <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-desert border-t-transparent rounded-full animate-spin" /></div>;
   if (!consultant) return <div className="text-center py-20 font-heading text-2xl">Expert not found</div>;
 
-  const consultantName = consultant.fullName || consultant.displayName || "Expert Consultant";
+  const consultantName = consultant.displayName || "Expert Consultant";
   const consultantExpertise = consultant.expertise || (consultant as any).categories || [];
   const isLocalMatch = consultant.areaOfOperation === currentUser?.province;
 
