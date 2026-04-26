@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const { engagements } = useEngagements();
   const { consultants } = useConsultants(user?.goal, user?.province);
   
-  const activeEngagements = engagements.filter(e => e.status !== 'completed');
+  const activeEngagements = engagements.filter(e => e.status !== 'COMPLETED');
   const totalEscrow = engagements.reduce((acc, e) => e.escrowStatus === 'funded' ? acc + (e.totalAmount || 0) : acc, 0);
 
   if (user?.role === "consultant") {
