@@ -73,23 +73,26 @@ export default function EngagementDetailPage() {
   async function handleRatingSubmit(rating: number, review: string) {
     setIsProcessing(true);
     try {
-      // 1. Update engagement with rating
+      // 1. Update engagement with rating and release funds
       await updateDoc(doc(db, "engagements", engagementId), {
         rating,
         review,
         status: "completed",
+        escrowStatus: "released",
         updatedAt: serverTimestamp(),
       });
 
       // 2. Add system message
       await addDoc(collection(db, "engagements", engagementId, "messages"), {
         senderId: "system",
-        content: `Project marked as complete. OFW left a ${rating}-star review.`,
+        content: `Project marked as complete. OFW released ₱${(engagement.totalAmount || 0).toLocaleString()} to consultant.`,
         type: "system",
         createdAt: serverTimestamp(),
       });
 
       setShowRatingModal(false);
+      alert("Project completed successfully! Funds have been released to the expert.");
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error(error);
     } finally {
@@ -99,7 +102,7 @@ export default function EngagementDetailPage() {
 
   const progress = engagement.mode === "session" 
     ? (engagement.status === "completed" ? 100 : 0) 
-    : (milestones.filter(m => m.status === 'released').length / milestones.length * 100 || 0);
+    : (milestones.filter(m => m.status === 'verified' || m.status === 'released').length / milestones.length * 100 || 0);
 
   return (
     <div className="space-y-8 pb-20">
@@ -340,7 +343,7 @@ export default function EngagementDetailPage() {
       )}
 
       {/* Phase 5: Completion */}
-      {engagement.status === "in_progress" && progress === 100 && user?.role === "ofw" && (
+      {(engagement.status === "ESCROW_LOCKED" || engagement.status === "EXECUTION") && progress === 100 && user?.role === "ofw" && (
         <div className="bg-green-600 p-10 rounded-[3rem] text-white flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="space-y-4 text-left">
             <div className="flex items-center gap-3">
@@ -382,13 +385,13 @@ export default function EngagementDetailPage() {
                 <div className="space-y-1">
                   <p className="text-4xl font-bold text-rhino font-heading">{Math.round(progress)}%</p>
                   <p className="text-sm text-rhino/50 font-body">
-                    {engagement.mode === "session" ? "1-hour session engagement" : `${milestones.filter(m => m.status === 'released').length} of ${milestones.length} milestones released`}
+                    {engagement.mode === "session" ? "1-hour session engagement" : `${milestones.filter(m => m.status === 'verified' || m.status === 'released').length} of ${milestones.length} milestones verified`}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-desert font-body uppercase tracking-widest">Escrow Balance</p>
+                  <p className="text-xs font-bold text-desert font-body uppercase tracking-widest">Escrow Vault</p>
                   <p className="text-xl font-bold text-rhino font-heading">
-                    ₱{(engagement.totalAmount - milestones.filter(m => m.status === 'released').reduce((acc, curr) => acc + curr.amount, 0)).toLocaleString()}
+                    ₱{(engagement.totalAmount || 0).toLocaleString()} Locked
                   </p>
                 </div>
               </div>
