@@ -75,6 +75,9 @@ export interface Engagement {
   createdAt: any;
   updatedAt: any;
   lastActivityAt: any;
+  currentMilestoneIndex?: number;
+  meetLink?: string;
+  meetEventId?: string;
 }
 
 export interface Milestone {
@@ -94,12 +97,22 @@ export interface Milestone {
   };
 }
 
+export interface AppointmentMetadata {
+  proposedAt: string;
+  durationMinutes: number;
+  note?: string;
+  status: "pending" | "approved" | "declined";
+  proposedBy: string;
+  meetLink?: string;
+  meetEventId?: string;
+}
+
 export interface Message {
   id: string;
   engagementId: string;
   senderId: string;
   content: string;
-  type: "text" | "system" | "meet_card" | "milestone_card" | "milestone_update";
-  metadata?: any;
+  type: "text" | "system" | "meet_card" | "milestone_card" | "milestone_update" | "appointment_request" | "meet_link";
+  metadata?: AppointmentMetadata | Record<string, unknown>;
   createdAt: any;
 }

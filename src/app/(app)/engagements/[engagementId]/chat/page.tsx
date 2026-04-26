@@ -11,7 +11,6 @@ import {
   Send,
   Paperclip,
   Smile,
-  Video,
   CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -20,6 +19,10 @@ import { useParams, usePathname } from "next/navigation";
 import { useEngagementChat, useEngagement } from "@/hooks/useEngagement";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
+import { ScheduleMeetingButton } from "@/components/chat/ScheduleMeetingButton";
+import { AppointmentRequestCard } from "@/components/chat/AppointmentRequestCard";
+import { MeetLinkCard } from "@/components/chat/MeetLinkCard";
+import type { AppointmentMetadata } from "@/types";
 
 export default function EngagementChatPage() {
   const params = useParams();
@@ -143,6 +146,24 @@ export default function EngagementChatPage() {
                     <p className="text-xs text-rhino/50 font-body">{msg.content}</p>
                   </div>
                 )}
+
+                {msg.type === "appointment_request" && msg.metadata && (
+                  <AppointmentRequestCard
+                    messageId={msg.id}
+                    engagementId={engagementId}
+                    metadata={msg.metadata as AppointmentMetadata}
+                  />
+                )}
+
+                {msg.type === "meet_link" && msg.content && (
+                  <MeetLinkCard
+                    meetLink={msg.content}
+                    scheduledAt={(msg.metadata as Record<string, string> | undefined)?.scheduledAt}
+                    durationMinutes={
+                      (msg.metadata as Record<string, number> | undefined)?.durationMinutes
+                    }
+                  />
+                )}
               </div>
             );
           })}
@@ -154,6 +175,7 @@ export default function EngagementChatPage() {
             <button type="button" className="p-3 rounded-xl hover:bg-white text-rhino/40 hover:text-rhino transition-all">
               <Paperclip className="w-5 h-5" />
             </button>
+            <ScheduleMeetingButton engagementId={engagementId} />
             <input 
               type="text" 
               value={message}
