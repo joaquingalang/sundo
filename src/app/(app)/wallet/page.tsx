@@ -19,7 +19,7 @@ export default function WalletPage() {
   const { engagements } = useEngagements();
 
   const totalEscrow = engagements.reduce((acc, e) => e.escrowStatus === 'funded' ? acc + (e.totalAmount || 0) : acc, 0);
-  const totalInvested = engagements.filter(e => e.status === 'completed').reduce((acc, e) => acc + (e.totalAmount || 0), 0);
+  const totalInvested = engagements.filter(e => e.status === 'COMPLETED').reduce((acc, e) => acc + (e.totalAmount || 0), 0);
 
   const transactions = engagements.flatMap(e => {
     const txs = [];
@@ -33,7 +33,7 @@ export default function WalletPage() {
         status: "locked"
       });
     }
-    if (e.status === 'completed') {
+    if (e.status === 'COMPLETED') {
       txs.push({
         id: `release-${e.id}`,
         type: "out",

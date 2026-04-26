@@ -77,7 +77,7 @@ export default function EngagementDetailPage() {
       await updateDoc(doc(db, "engagements", engagementId), {
         rating,
         review,
-        status: "completed",
+        status: "COMPLETED",
         escrowStatus: "released",
         updatedAt: serverTimestamp(),
       });
@@ -85,7 +85,7 @@ export default function EngagementDetailPage() {
       // 2. Add system message
       await addDoc(collection(db, "engagements", engagementId, "messages"), {
         senderId: "system",
-        content: `Project marked as complete. OFW released ₱${(engagement.totalAmount || 0).toLocaleString()} to consultant.`,
+        content: `Project marked as complete. OFW released ₱${(engagement?.totalAmount || 0).toLocaleString()} to consultant.`,
         type: "system",
         createdAt: serverTimestamp(),
       });
@@ -101,7 +101,7 @@ export default function EngagementDetailPage() {
   }
 
   const progress = engagement.mode === "session" 
-    ? (engagement.status === "completed" ? 100 : 0) 
+    ? (engagement.status === "COMPLETED" ? 100 : 0) 
     : (milestones.filter(m => m.status === 'verified' || m.status === 'released').length / milestones.length * 100 || 0);
 
   return (
@@ -471,8 +471,8 @@ export default function EngagementDetailPage() {
                 <span className="text-xs font-body text-rhino/60">Profile ID Verified</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className={cn("w-5 h-5 rounded-md border-2 flex items-center justify-center", engagement.status !== 'proposal_pending' ? "border-green-500 text-green-500" : "border-akaroa/20")}>
-                  {engagement.status !== 'proposal_pending' && <CheckCircle2 className="w-3 h-3" />}
+                <div className={cn("w-5 h-5 rounded-md border-2 flex items-center justify-center", engagement.status !== 'REQUESTED' ? "border-green-500 text-green-500" : "border-akaroa/20")}>
+                  {engagement.status !== 'REQUESTED' && <CheckCircle2 className="w-3 h-3" />}
                 </div>
                 <span className="text-xs font-body text-rhino/60">Roadmap Submitted</span>
               </div>

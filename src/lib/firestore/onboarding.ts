@@ -26,6 +26,13 @@ export interface OnboardingDoc {
         idUrl?: string;
         idType?: string;
       };
+      step4?: {
+        govIdUrl?: string;
+        passportUrl?: string;
+        ofwCardUrl?: string;
+        visaUrl?: string;
+        addressProofUrl?: string;
+      };
     };
     consultant?: {
       step1?: {

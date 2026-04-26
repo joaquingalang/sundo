@@ -49,7 +49,7 @@ export default function ProjectManagerPage() {
       await updateDoc(doc(db, "engagements", engagementId), {
         rating,
         review,
-        status: "completed",
+        status: "COMPLETED",
         escrowStatus: "released",
         updatedAt: serverTimestamp(),
       });
@@ -57,7 +57,7 @@ export default function ProjectManagerPage() {
       // 2. Add system message
       await addDoc(collection(db, "engagements", engagementId, "messages"), {
         senderId: "system",
-        content: `Project marked as complete. OFW released ₱${(engagement.totalAmount || 0).toLocaleString()} to consultant.`,
+        content: `Project marked as complete. OFW released ₱${(engagement?.totalAmount || 0).toLocaleString()} to consultant.`,
         type: "system",
         createdAt: serverTimestamp(),
       });
@@ -111,7 +111,7 @@ export default function ProjectManagerPage() {
   }
 
   async function handleAddTask(milestoneId: string, currentTasks: any[] = []) {
-    if (engagement.status === "REQUESTED" || engagement.status === "PROPOSAL") {
+    if (engagement?.status === "REQUESTED" || engagement?.status === "PROPOSAL") {
       alert("Consultant can only add tasks after the roadmap is accepted.");
       return;
     }
@@ -135,8 +135,8 @@ export default function ProjectManagerPage() {
 
   async function handleToggleTask(milestoneId: string, currentTasks: any[], taskIndex: number) {
     if (user?.role !== "consultant") return;
-    if (engagement.status === "REQUESTED" || engagement.status === "PROPOSAL") return;
-    
+    if (engagement?.status === "REQUESTED" || engagement?.status === "PROPOSAL") return;
+
     const taskObj = currentTasks.map(t => typeof t === 'string' ? { title: t, completed: false } : { ...t });
     taskObj[taskIndex].completed = !taskObj[taskIndex].completed;
 
@@ -150,7 +150,7 @@ export default function ProjectManagerPage() {
   }
 
   async function handleVerifyWithAI(e: React.ChangeEvent<HTMLInputElement>, mId: string, tIdx: number, tasks: any[], isFinal: boolean = false) {
-    if (engagement.status === "REQUESTED" || engagement.status === "PROPOSAL") return;
+    if (engagement?.status === "REQUESTED" || engagement?.status === "PROPOSAL") return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -378,7 +378,7 @@ export default function ProjectManagerPage() {
             </div>
           )}
 
-          {engagement.status !== "ESCROW_LOCKED" && engagement.status !== "EXECUTION" && engagement.status !== "completed" && engagement.status !== "WAITING_FOR_DEPOSIT" && (
+          {engagement.status !== "ESCROW_LOCKED" && engagement.status !== "EXECUTION" && engagement.status !== "COMPLETED" && engagement.status !== "WAITING_FOR_DEPOSIT" && (
             <div className="bg-white p-20 rounded-[3rem] border border-dashed border-akaroa/20 text-center space-y-6">
               <div className="w-24 h-24 bg-rhino/5 rounded-[2.5rem] flex items-center justify-center mx-auto">
                 <Lock className="w-12 h-12 text-rhino/20" />
@@ -390,7 +390,7 @@ export default function ProjectManagerPage() {
             </div>
           )}
 
-          {(engagement.status === "ESCROW_LOCKED" || engagement.status === "EXECUTION" || engagement.status === "completed") && (
+          {(engagement.status === "ESCROW_LOCKED" || engagement.status === "EXECUTION" || engagement.status === "COMPLETED") && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
                 <h3 className="font-heading font-bold text-rhino text-2xl">Active Ecosystem Milestones</h3>
@@ -663,10 +663,12 @@ export default function ProjectManagerPage() {
         </div>
       </div>
       {showRatingModal && (
-        <RatingModal 
+        <RatingModal
+          isOpen={showRatingModal}
           onClose={() => setShowRatingModal(false)}
           onSubmit={handleRatingSubmit}
-          isProcessing={isProcessing}
+          isSubmitting={isProcessing}
+          consultantName={engagement?.title || "Expert"}
         />
       )}
     </div>

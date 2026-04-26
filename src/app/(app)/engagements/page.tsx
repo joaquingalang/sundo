@@ -49,8 +49,8 @@ export default function EngagementsPage() {
 
   const filteredEngagements = engagements.filter(eng => {
     if (activeTab === "all") return true;
-    if (activeTab === "active") return eng.status !== "completed" && eng.status !== "cancelled";
-    if (activeTab === "completed") return eng.status === "completed";
+    if (activeTab === "active") return eng.status !== "COMPLETED" && eng.status !== "CANCELLED";
+    if (activeTab === "completed") return eng.status === "COMPLETED";
     return true;
   });
 

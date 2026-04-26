@@ -14,6 +14,7 @@ interface FileUploadProps {
   error?: string;
   optional?: boolean;
   accept?: string;
+  previewUrl?: string;
 }
 
 export function FileUpload({
@@ -23,6 +24,7 @@ export function FileUpload({
   error,
   optional = false,
   accept = "image/*,.pdf",
+  previewUrl,
 }: FileUploadProps) {
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
@@ -155,7 +157,10 @@ export function FileUpload({
             "border-akaroa bg-white cursor-pointer hover:border-rhino/50 hover:bg-rhino/5"
         )}
       >
-        {state === "idle" && (
+        {state === "idle" && previewUrl && (
+          <img src={previewUrl} alt="Preview" className="h-full w-full object-cover rounded-lg" />
+        )}
+        {state === "idle" && !previewUrl && (
           <>
             <UploadCloudIcon className="text-sandstone" />
             <p className="text-xs font-body text-center text-sandstone">

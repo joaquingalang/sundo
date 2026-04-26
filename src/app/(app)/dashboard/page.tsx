@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const totalEscrow = engagements.reduce((acc, e) => e.escrowStatus === 'funded' ? acc + (e.totalAmount || 0) : acc, 0);
 
   if (user?.role === "consultant") {
-    return <ConsultantDashboard user={user} engagements={activeEngagements} totalEarnings={54200} />;
+    return <ConsultantDashboard user={user} engagements={activeEngagements} />;
   }
 
   return <OFWDashboard user={user} engagements={activeEngagements} consultants={consultants} totalEscrow={totalEscrow} />;

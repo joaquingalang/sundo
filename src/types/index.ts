@@ -38,14 +38,15 @@ export interface UserProfile {
   projectRateRange?: { min: number; max: number };
 }
 
-export type ProjectStatus = 
-  | "REQUESTED" 
-  | "PROPOSAL" 
-  | "WAITING_FOR_DEPOSIT" 
-  | "ESCROW_LOCKED" 
-  | "EXECUTION" 
-  | "AI_AUDIT" 
-  | "COMPLETED";
+export type ProjectStatus =
+  | "REQUESTED"
+  | "PROPOSAL"
+  | "WAITING_FOR_DEPOSIT"
+  | "ESCROW_LOCKED"
+  | "EXECUTION"
+  | "AI_AUDIT"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface Engagement {
   id: string;
@@ -57,7 +58,20 @@ export interface Engagement {
   status: ProjectStatus;
   totalAmount: number;
   escrowStatus: "unfunded" | "funded" | "released" | "refunded";
-  proposalUrl?: string; // PDF Roadmap
+  proposalUrl?: string;
+  mode?: string;
+  ofwName?: string;
+  consultantName?: string;
+  rating?: number;
+  review?: string;
+  metadata?: {
+    ofwName?: string;
+    ofwGoal?: string;
+    ofwProvince?: string;
+    ofwSalaryRange?: string;
+    consultantName?: string;
+    [key: string]: any;
+  };
   createdAt: any;
   updatedAt: any;
   lastActivityAt: any;
@@ -68,7 +82,7 @@ export interface Milestone {
   engagementId: string;
   title: string;
   amount: number;
-  status: "locked" | "in_progress" | "submitted" | "released" | "disputed";
+  status: "locked" | "in_progress" | "submitted" | "released" | "disputed" | "verified" | "AI_AUDITED";
   deliverables: string[];
   tasks?: Array<string | { title: string; completed: boolean }>;
   proofOfWorkURL?: string;
