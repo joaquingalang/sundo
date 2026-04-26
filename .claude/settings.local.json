@@ -2,7 +2,22 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/L-JOAQUIN/Documents/Projects/Web/**)",
-      "Bash(npx create-next-app@latest sundo --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)"
+      "Bash(npx create-next-app@latest sundo --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)",
+      "Bash(gsutil cors *)",
+      "Bash(gcloud storage buckets update *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "Bash(git merge *)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(xargs sed *)",
+      "Bash(npx next *)",
+      "Bash(NEXT_TURBO=0 npx next build)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npx next build)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('zustand:', p.dependencies.zustand, 'lucide-react:', p.dependencies['lucide-react'], 'framer-motion:', p.dependencies['framer-motion']\\)\")"
     ]
   }
 }
