@@ -142,10 +142,10 @@ export default function ConsultantsPage() {
                   "w-24 h-24 rounded-3xl bg-rhino text-white flex items-center justify-center text-3xl font-bold shadow-xl shadow-rhino/20 group-hover:scale-105 transition-transform overflow-hidden",
                   viewMode === "list" && "w-32 h-32"
                 )}>
-                  {(c.photoURL || c.photoUrl) ? (
-                    <img src={c.photoURL || c.photoUrl} alt={c.fullName || c.displayName} className="w-full h-full object-cover" />
+                  {c.photoURL ? (
+                    <img src={c.photoURL} alt={c.displayName} className="w-full h-full object-cover" />
                   ) : (
-                    (c.fullName || c.displayName || "?").split(' ').map(n => n[0]).join('')
+                    (c.displayName || "?").split(' ').map(n => n[0]).join('')
                   )}
                 </div>
                 <div className="absolute top-4 right-4 flex gap-2">
@@ -159,7 +159,7 @@ export default function ConsultantsPage() {
               <div className="p-8 space-y-6 flex-1 text-left">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-heading text-2xl font-bold text-rhino">{c.fullName || c.displayName}</h3>
+                    <h3 className="font-heading text-2xl font-bold text-rhino">{c.displayName}</h3>
                     <div className="flex items-center gap-1 text-sm font-bold text-desert">
                       <Star className="w-4 h-4 fill-desert" />
                       4.9
@@ -170,7 +170,7 @@ export default function ConsultantsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {(c.expertise || c.categories)?.map((tag: string) => (
+                  {c.expertise?.map((tag: string) => (
                     <span key={tag} className="px-3 py-1 rounded-lg bg-rhino/5 text-rhino/50 text-[10px] font-bold font-body uppercase">{tag}</span>
                   ))}
                 </div>

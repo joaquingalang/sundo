@@ -26,7 +26,6 @@ export function useConsultants(goal?: string, province?: string, searchQuery?: s
         // Category Filtering (Mandatory if provided)
         if (goal && goal !== "all") {
           fetched = fetched.filter(c => 
-            c.categories?.includes(goal.toLowerCase()) || 
             c.expertise?.some(e => e.toLowerCase() === goal.toLowerCase())
           );
         }
