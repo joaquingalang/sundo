@@ -4,7 +4,7 @@ import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "outline";
   size?: "sm" | "md";
   isLoading?: boolean;
   fullWidth?: boolean;
@@ -30,6 +30,8 @@ export function Button({
           "bg-rhino text-white hover:bg-rhino-dark active:bg-rhino-dark",
         variant === "ghost" &&
           "border border-akaroa text-rhino hover:bg-akaroa/20 active:bg-akaroa/30",
+        variant === "outline" &&
+          "border border-current text-rhino hover:bg-rhino/5 active:bg-rhino/10",
         size === "sm" && "h-9 px-4 text-sm",
         size === "md" && "h-11 px-6 text-base",
         fullWidth && "w-full",

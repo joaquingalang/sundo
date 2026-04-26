@@ -9,42 +9,32 @@ import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const CONSULTANT_STEPS = ["Personal Info", "Expertise", "Rates", "Documents"];
+const CONSULTANT_STEPS = ["Profile Info", "Expertise", "Pricing", "AI Verification"];
 
 const EXPERTISE_OPTIONS = [
-  { value: "business", label: "Business" },
-  { value: "work_local", label: "Work (Local)" },
-  { value: "general", label: "General Consultation" },
-  { value: "benefits", label: "Benefits" },
-  { value: "retirement", label: "Retirement" },
-  { value: "reintegration", label: "Reintegration" },
-  { value: "education", label: "Education" },
-];
-
-const ENGAGEMENT_OPTIONS = [
-  { value: "async", label: "Async only (text-based, email)" },
-  { value: "live", label: "Live sessions only (video calls)" },
-  { value: "both", label: "Both async and live" },
+  { value: "Business", label: "Business Reintegration" },
+  { value: "Redeployment", label: "Local/Abroad Redeployment" },
+  { value: "General", label: "General Consultation" },
+  { value: "Benefits", label: "Government Benefits & Claims" },
+  { value: "Retirement", label: "Retirement Planning" },
+  { value: "Education", label: "Education & Skills Training" },
 ];
 
 export default function ConsultantStep2Page() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
-  const [expertiseAreas, setExpertiseAreas] = useState<string[]>([]);
-  const [engagementMode, setEngagementMode] = useState("");
+  const [expertise, setExpertise] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) { router.replace("/login"); return; }
-      if (!user.emailVerified) { router.replace("/verify-email"); return; }
       setUid(user.uid);
       const doc = await loadOnboardingDoc(user.uid);
       const draft = doc?.consultant?.step2;
       if (draft) {
-        if (draft.expertiseAreas) setExpertiseAreas(draft.expertiseAreas);
-        if (draft.engagementMode) setEngagementMode(draft.engagementMode);
+        if (draft.expertise) setExpertise(draft.expertise);
       }
     });
     return unsub;
@@ -52,8 +42,7 @@ export default function ConsultantStep2Page() {
 
   function validate() {
     const errs: Record<string, string> = {};
-    if (expertiseAreas.length === 0) errs.expertise = "Please select at least one area of expertise.";
-    if (!engagementMode) errs.engagement = "Please select your engagement mode.";
+    if (expertise.length === 0) errs.expertise = "Please select at least one area of expertise.";
     return errs;
   }
 
@@ -63,7 +52,7 @@ export default function ConsultantStep2Page() {
     if (!uid) return;
     setSaving(true);
     try {
-      await saveStepDraft(uid, "consultant", 2, { expertiseAreas, engagementMode });
+      await saveStepDraft(uid, "consultant", 2, { expertise });
       router.push("/onboarding/consultant/step-3");
     } catch {
       setSaving(false);
@@ -75,27 +64,17 @@ export default function ConsultantStep2Page() {
       currentStep={2}
       totalSteps={4}
       steps={CONSULTANT_STEPS}
-      title="Your expertise"
-      subtitle="Let us know what topics you specialise in and how you prefer to work with clients."
+      title="Define your Expertise"
+      subtitle="Select the areas where you can provide high-impact guidance to OFWs."
     >
       <div className="flex flex-col gap-8">
         <MultiSelect
           label="Areas of Expertise"
           options={EXPERTISE_OPTIONS}
-          value={expertiseAreas}
-          onChange={(v) => { setExpertiseAreas(v); setErrors((p) => ({ ...p, expertise: "" })); }}
+          value={expertise}
+          onChange={(v) => { setExpertise(v); setErrors((p) => ({ ...p, expertise: "" })); }}
           error={errors.expertise}
-          hint="Select all that apply. OFWs will filter consultants by these."
-        />
-
-        <Select
-          label="Preferred Engagement Mode"
-          placeholder="Select how you work with clients"
-          options={ENGAGEMENT_OPTIONS}
-          value={engagementMode}
-          onChange={(e) => { setEngagementMode(e.target.value); setErrors((p) => ({ ...p, engagement: "" })); }}
-          error={errors.engagement}
-          required
+          hint="These categories directly match OFW goals for precise matchmaking."
         />
 
         <div className="flex items-center justify-between pt-8 mt-4 border-t border-akaroa/30">

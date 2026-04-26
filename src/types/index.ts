@@ -20,6 +20,9 @@ export interface UserProfile {
   barangay?: string;
   city?: string;
   province?: string;
+  goal?: "Business" | "Redeployment" | "General" | "Benefits" | "Retirement" | "Education";
+  salaryRange?: string;
+  jobTitle?: string;
   lastPosition?: string;
   countryDeployed?: string;
   currentSituation?: string;
@@ -29,10 +32,21 @@ export interface UserProfile {
   professionalTitle?: string;
   yearsExperience?: number;
   bio?: string;
-  categories?: string[];
+  areaOfOperation?: string; // Matches OFW province
+  expertise?: string[]; // Matches OFW goal
   sessionRate?: number;
   projectRateRange?: { min: number; max: number };
 }
+
+export type ProjectStatus =
+  | "REQUESTED"
+  | "PROPOSAL"
+  | "WAITING_FOR_DEPOSIT"
+  | "ESCROW_LOCKED"
+  | "EXECUTION"
+  | "AI_AUDIT"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface Engagement {
   id: string;
@@ -41,14 +55,26 @@ export interface Engagement {
   title: string;
   description: string;
   category: string;
-  mode: "session" | "project";
-  status: "pending_acceptance" | "proposal_pending" | "awaiting_acceptance" | "awaiting_escrow" | "in_progress" | "completed" | "cancelled" | "disputed";
+  status: ProjectStatus;
   totalAmount: number;
   escrowStatus: "unfunded" | "funded" | "released" | "refunded";
+  proposalUrl?: string;
+  mode?: string;
+  ofwName?: string;
+  consultantName?: string;
+  rating?: number;
+  review?: string;
+  metadata?: {
+    ofwName?: string;
+    ofwGoal?: string;
+    ofwProvince?: string;
+    ofwSalaryRange?: string;
+    consultantName?: string;
+    [key: string]: any;
+  };
   createdAt: any;
   updatedAt: any;
   lastActivityAt: any;
-  currentMilestoneIndex?: number;
 }
 
 export interface Milestone {
@@ -56,7 +82,7 @@ export interface Milestone {
   engagementId: string;
   title: string;
   amount: number;
-  status: "locked" | "in_progress" | "submitted" | "released" | "disputed";
+  status: "locked" | "in_progress" | "submitted" | "released" | "disputed" | "verified" | "AI_AUDITED";
   deliverables: string[];
   tasks?: Array<string | { title: string; completed: boolean }>;
   proofOfWorkURL?: string;

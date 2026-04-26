@@ -23,13 +23,18 @@ import { useConsultants } from "@/hooks/useConsultants";
 
 export default function ConsultantsPage() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { consultants, isLoading } = useConsultants(activeCategory);
+  const { consultants, isLoading } = useConsultants(
+    activeCategory === "all" ? undefined : activeCategory,
+    undefined,
+    searchQuery
+  );
 
   const categories = [
     { id: "all", label: "All Categories", icon: LayoutGrid },
     { id: "business", label: "Business", icon: TrendingUp },
-    { id: "work_local", label: "Work (Local)", icon: Briefcase },
+    { id: "redeployment", label: "Redeployment", icon: Briefcase },
     { id: "general", label: "General", icon: HelpCircle },
     { id: "benefits", label: "Benefits", icon: ClipboardCheck },
     { id: "retirement", label: "Retirement", icon: Home },
@@ -71,6 +76,8 @@ export default function ConsultantsPage() {
             <input 
               type="text" 
               placeholder="Search by name, expertise, or keywords..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-akaroa/20 shadow-sm focus:border-desert focus:ring-4 focus:ring-desert/5 outline-none font-body transition-all"
             />
           </div>
@@ -163,15 +170,15 @@ export default function ConsultantsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {c.categories?.map(tag => (
+                  {c.expertise?.map((tag: string) => (
                     <span key={tag} className="px-3 py-1 rounded-lg bg-rhino/5 text-rhino/50 text-[10px] font-bold font-body uppercase">{tag}</span>
                   ))}
                 </div>
 
                 <div className="pt-6 border-t border-akaroa/10 flex items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="text-[10px] text-rhino/40 font-body uppercase tracking-widest font-bold text-left">Starting Rate</p>
-                    <p className="text-sm font-bold text-rhino">₱{c.sessionRate?.toLocaleString()}/hr</p>
+                    <p className="text-[10px] text-rhino/40 font-body uppercase tracking-widest font-bold text-left">Project Rate Range</p>
+                    <p className="text-sm font-bold text-rhino">₱{c.projectRateRange?.min?.toLocaleString()} – ₱{c.projectRateRange?.max?.toLocaleString()}</p>
                   </div>
                   <Link href={`/consultants/${c.uid}`} className="flex-1">
                     <Button fullWidth className="h-12 rounded-xl group">

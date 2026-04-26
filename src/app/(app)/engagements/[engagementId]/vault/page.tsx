@@ -21,6 +21,8 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEngagement } from "@/hooks/useEngagement";
 import { processDocumentUpload } from "@/app/actions/validation";
+import { updateDoc, doc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function EngagementVaultPage() {
   const params = useParams();
@@ -28,6 +30,7 @@ export default function EngagementVaultPage() {
   const engagementId = params.engagementId as string;
   const { engagement, milestones, isLoading } = useEngagement(engagementId);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [auditResult, setAuditResult] = useState<any>(null);
 
   if (isLoading) return <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-desert border-t-transparent rounded-full animate-spin" /></div>;
@@ -51,7 +54,7 @@ export default function EngagementVaultPage() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("milestoneId", milestones[0]?.id || "default");
+    formData.append("milestoneId", milestones.find(m => m.status === 'in_progress')?.id || milestones[0]?.id || "default");
     formData.append("engagementId", engagementId);
 
     try {
@@ -62,6 +65,32 @@ export default function EngagementVaultPage() {
       alert("AI Audit failed. Please try again.");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleReleaseSubmission = async () => {
+    const activeMilestone = milestones.find(m => m.status === 'in_progress') || milestones[0];
+    if (!activeMilestone) return;
+
+    setIsProcessing(true);
+    try {
+      await updateDoc(doc(db, "engagements", engagementId, "milestones", activeMilestone.id), {
+        status: "AI_AUDITED"
+      });
+
+      await addDoc(collection(db, "engagements", engagementId, "messages"), {
+        senderId: "system",
+        content: `Expert has submitted ${activeMilestone.title} for verification.`,
+        type: "system",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Success! Submitted for verification.");
+      setAuditResult(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -102,15 +131,15 @@ export default function EngagementVaultPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
         <div className="lg:col-span-3 space-y-8">
-          {/* Upload Area */}
-          <div className="bg-white p-12 rounded-[3rem] border-2 border-dashed border-akaroa/20 hover:border-desert/40 transition-all text-center space-y-6 group relative">
+          {/* Compliance Area */}
+          <div className="bg-white p-12 rounded-[3rem] border-2 border-dashed border-akaroa/20 hover:border-desert/40 transition-all text-center space-y-6 group relative shadow-sm">
             <div className="w-20 h-20 bg-rhino/5 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-              <Upload className={cn("w-10 h-10 text-rhino/20", isUploading && "animate-bounce text-desert")} />
+              <ShieldCheck className={cn("w-10 h-10 text-rhino/20", isUploading && "animate-bounce text-desert")} />
             </div>
             <div className="space-y-2">
-              <h3 className="font-heading text-2xl font-bold text-rhino">Upload Deliverables</h3>
+              <h3 className="font-heading text-2xl font-bold text-rhino">Legal & Compliance Vault</h3>
               <p className="font-body text-rhino/40 max-w-sm mx-auto">
-                Upload PDFs, Images, or Documents. Our AI will automatically audit the submission for milestone compliance.
+                Securely share legal documents, permits, and proofs of identity. This space is for compliance and project validity only.
               </p>
             </div>
             <div className="flex justify-center gap-4">
@@ -123,7 +152,7 @@ export default function EngagementVaultPage() {
               />
               <label htmlFor="vault-upload" className="cursor-pointer">
                 <div className="inline-flex items-center justify-center h-14 px-10 rounded-2xl bg-rhino text-white hover:bg-rhino/90 shadow-xl shadow-rhino/5 font-heading font-bold text-sm transition-all">
-                  {isUploading ? "AI Auditing..." : "Select Files"}
+                  {isUploading ? "Uploading Securely..." : "Share Legal Document"}
                 </div>
               </label>
             </div>
@@ -169,7 +198,13 @@ export default function EngagementVaultPage() {
               </div>
               {auditResult.status === "passed" && (
                 <div className="flex justify-end">
-                  <Button className="bg-green-600 hover:bg-green-700">Submit for Release Approval</Button>
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={handleReleaseSubmission}
+                    isLoading={isProcessing}
+                  >
+                    Submit for Verification
+                  </Button>
                 </div>
               )}
             </div>

@@ -10,12 +10,11 @@ import { Select } from "@/components/ui/Select";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Button } from "@/components/ui/Button";
 
-const OFW_STEPS = ["Personal Info", "Deployment", "Interests", "Documents"];
+const OFW_STEPS = ["Profile Info", "Goals", "AI Verification", "Complete"];
 
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "fil", label: "Filipino (Tagalog)" },
-];
+const PROVINCE_OPTIONS = [
+  "Metro Manila", "Cebu", "Davao", "Iloilo", "Pampanga", "Cavite", "Laguna", "Pangasinan", "Bulacan", "Batangas"
+].map(p => ({ value: p, label: p }));
 
 export default function OfwStep1Page() {
   const router = useRouter();
@@ -23,23 +22,22 @@ export default function OfwStep1Page() {
   const [authReady, setAuthReady] = useState(false);
   const [fullName, setFullName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [address, setAddress] = useState("");
-  const [language, setLanguage] = useState("");
+  const [province, setProvince] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) { router.replace("/login"); return; }
-      if (!user.emailVerified) { router.replace("/verify-email"); return; }
       setUid(user.uid);
       const doc = await loadOnboardingDoc(user.uid);
       const draft = doc?.ofw?.step1;
       if (draft) {
         if (draft.fullName) setFullName(draft.fullName);
         if (draft.photoUrl) setPhotoUrl(draft.photoUrl);
-        if (draft.address) setAddress(draft.address);
-        if (draft.language) setLanguage(draft.language);
+        if (draft.province) setProvince(draft.province);
+        if (draft.jobTitle) setJobTitle(draft.jobTitle);
       }
       setAuthReady(true);
     });
@@ -47,14 +45,13 @@ export default function OfwStep1Page() {
   }, [router]);
 
   if (!authReady) return null;
-  console.log("[OFW Step1] Rendering. uid:", uid, "storagePath:", `photos/${uid}/profile`);
 
   function validate() {
     const errs: Record<string, string> = {};
     if (!fullName.trim()) errs.fullName = "Full name is required.";
     if (!photoUrl) errs.photo = "Profile photo is required.";
-    if (!address.trim()) errs.address = "Philippine address is required.";
-    if (!language) errs.language = "Please select a language.";
+    if (!province) errs.province = "Please select your home province.";
+    if (!jobTitle.trim()) errs.jobTitle = "Current or last job title is required.";
     return errs;
   }
 
@@ -64,7 +61,7 @@ export default function OfwStep1Page() {
     if (!uid) return;
     setSaving(true);
     try {
-      await saveStepDraft(uid, "ofw", 1, { fullName: fullName.trim(), photoUrl, address: address.trim(), language });
+      await saveStepDraft(uid, "ofw", 1, { fullName: fullName.trim(), photoUrl, province, jobTitle: jobTitle.trim() });
       router.push("/onboarding/ofw/step-2");
     } catch {
       setSaving(false);
@@ -76,10 +73,21 @@ export default function OfwStep1Page() {
       currentStep={1}
       totalSteps={4}
       steps={OFW_STEPS}
-      title="Tell us about yourself"
-      subtitle="This helps us personalise your experience and show your profile to relevant consultants."
+      title="Create your OFW Profile"
+      subtitle="This data is used to match you with verified experts."
     >
       <div className="flex flex-col gap-6">
+        <div className="flex justify-center mb-4">
+          <FileUpload
+            label="Profile Photo"
+            storagePath={`photos/${uid}/profile`}
+            onUploadComplete={(url) => { setPhotoUrl(url); setErrors((p) => ({ ...p, photo: "" })); }}
+            error={errors.photo}
+            accept="image/*"
+            previewUrl={photoUrl}
+          />
+        </div>
+
         <Input
           label="Full Name"
           placeholder="e.g. Maria Santos"
@@ -89,32 +97,25 @@ export default function OfwStep1Page() {
           required
         />
 
-        <FileUpload
-          label="Profile Photo"
-          storagePath={`photos/${uid}/profile`}
-          onUploadComplete={(url) => { setPhotoUrl(url); setErrors((p) => ({ ...p, photo: "" })); }}
-          error={errors.photo}
-          accept="image/*"
-        />
-
-        <Input
-          label="Philippine Home Address"
-          placeholder="e.g. 123 Rizal St, Quezon City, Metro Manila"
-          value={address}
-          onChange={(e) => { setAddress(e.target.value); setErrors((p) => ({ ...p, address: "" })); }}
-          error={errors.address}
-          required
-        />
-
-        <Select
-          label="Language Preference"
-          placeholder="Select a language"
-          options={LANGUAGE_OPTIONS}
-          value={language}
-          onChange={(e) => { setLanguage(e.target.value); setErrors((p) => ({ ...p, language: "" })); }}
-          error={errors.language}
-          required
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <Select
+            label="Home Province"
+            placeholder="Select province"
+            options={PROVINCE_OPTIONS}
+            value={province}
+            onChange={(e) => { setProvince(e.target.value); setErrors((p) => ({ ...p, province: "" })); }}
+            error={errors.province}
+            required
+          />
+          <Input
+            label="Job Title"
+            placeholder="e.g. Registered Nurse"
+            value={jobTitle}
+            onChange={(e) => { setJobTitle(e.target.value); setErrors((p) => ({ ...p, jobTitle: "" })); }}
+            error={errors.jobTitle}
+            required
+          />
+        </div>
 
         <StepNav
           onBack={() => router.push("/onboarding/role")}

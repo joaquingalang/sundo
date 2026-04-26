@@ -39,7 +39,7 @@ export default function EngagementChatPage() {
   const tabs = [
     { label: "Overview", href: `/engagements/${engagementId}`, icon: Layers },
     { label: "Chat", href: `/engagements/${engagementId}/chat`, icon: MessageSquare },
-    { label: "Milestones", href: `/engagements/${engagementId}/milestones`, icon: ShieldCheck },
+    { label: auth.currentUser?.uid === engagement?.consultantId ? "Project Manager" : "Task Tracker", href: `/engagements/${engagementId}/milestones`, icon: ShieldCheck },
     { label: "Vault", href: `/engagements/${engagementId}/vault`, icon: FileText },
   ];
 

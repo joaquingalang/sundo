@@ -36,14 +36,7 @@ export default function AppLayout({
       
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-20 bg-white/40 backdrop-blur-md border-b border-akaroa/10 px-8 flex items-center justify-between shrink-0">
-          <div className="relative w-96 max-w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rhino/40" />
-            <input 
-              type="text" 
-              placeholder="Search consultants, engagements, or help..."
-              className="w-full h-11 pl-12 pr-4 rounded-xl bg-rhino/5 border-transparent focus:bg-white focus:border-akaroa/30 focus:ring-4 focus:ring-rhino/5 transition-all font-body text-sm outline-none"
-            />
-          </div>
+          <div />
 
           <div className="flex items-center gap-4">
             <button className="w-11 h-11 rounded-xl bg-white border border-akaroa/10 flex items-center justify-center text-rhino hover:bg-rhino hover:text-white transition-all group relative">
