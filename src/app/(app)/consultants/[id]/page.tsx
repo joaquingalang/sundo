@@ -48,8 +48,8 @@ export default function ConsultantProfilePage() {
       await addDoc(collection(db, "engagements"), {
         ofwId: currentUser.uid,
         consultantId: consultant.uid,
-        ofwName: currentUser.fullName || "Valued OFW",
-        consultantName: consultant.fullName || "Expert Partner",
+        ofwName: currentUser.displayName || "Valued OFW",
+        consultantName: consultant.displayName || "Expert Partner",
         status: "REQUESTED",
         title: `Consultation: ${currentUser.goal || "Reintegration"}`,
         category: currentUser.goal || "general",
@@ -58,7 +58,7 @@ export default function ConsultantProfilePage() {
         updatedAt: serverTimestamp(),
         // Pass essential profile data to the consultant
         metadata: {
-          ofwName: currentUser.fullName || "Valued OFW",
+          ofwName: currentUser.displayName || "Valued OFW",
           ofwGoal: currentUser.goal || "not set",
           ofwProvince: currentUser.province || "Philippines",
           ofwSalaryRange: currentUser.salaryRange || "not specified"
