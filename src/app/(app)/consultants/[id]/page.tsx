@@ -88,8 +88,8 @@ export default function ConsultantProfilePage() {
         
         <div className="relative z-10 flex flex-col md:flex-row gap-10 items-center md:items-start">
           <div className="w-40 h-40 rounded-[3rem] bg-rhino text-white flex items-center justify-center text-5xl font-bold shadow-2xl shadow-rhino/20 overflow-hidden shrink-0">
-            {(consultant.photoUrl || (consultant as any).photoURL) ? (
-              <img src={consultant.photoUrl || (consultant as any).photoURL} alt={consultantName} className="w-full h-full object-cover" />
+            {consultant.photoURL ? (
+              <img src={consultant.photoURL} alt={consultantName} className="w-full h-full object-cover" />
             ) : (
               (consultantName || "?").split(' ').map(n => n[0]).join('')
             )}
